@@ -30,6 +30,9 @@
     "typescript": "^5.0.0"
   },
   "keywords": ["playwright", "e2e", "testing", "screenshot", "documentation", "manual"],
+  "author": "k_sakamoto",
+  "homepage": "https://github.com/FR-k-sakamoto/playwright-scenario-recorder#readme",
+  "bugs": "https://github.com/FR-k-sakamoto/playwright-scenario-recorder/issues",
   "repository": {
     "type": "git",
     "url": "https://github.com/FR-k-sakamoto/playwright-scenario-recorder"
