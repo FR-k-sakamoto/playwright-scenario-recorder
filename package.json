@@ -1,6 +1,6 @@
 {
   "name": "playwright-scenario-recorder",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Playwright E2E scenario runner that auto-generates Markdown manuals with annotated screenshots",
   "license": "MIT",
   "type": "module",
