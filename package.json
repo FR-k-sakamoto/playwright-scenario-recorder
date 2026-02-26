@@ -1,0 +1,35 @@
+{
+  "name": "playwright-scenario-recorder",
+  "version": "0.1.0",
+  "description": "Playwright E2E scenario runner that auto-generates Markdown manuals with annotated screenshots",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "@playwright/test": ">=1.40.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "keywords": ["playwright", "e2e", "testing", "screenshot", "documentation", "manual"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FR-k-sakamoto/playwright-scenario-recorder"
+  }
+}
