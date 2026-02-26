@@ -1,5 +1,7 @@
 # playwright-scenario-recorder
 
+[日本語版 README](./README.ja.md)
+
 Playwright E2E scenario runner that auto-generates Markdown manuals with annotated screenshots.
 
 ## Install
