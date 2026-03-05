@@ -75,6 +75,23 @@ export class ScenarioRecorder {
     fs.mkdirSync(this.screenshotDir, { recursive: true });
   }
 
+  configure(overrides: { scenarioName?: string; title?: string; outputDir?: string }): void {
+    if (this.steps.length > 0) {
+      throw new Error("configure() must be called before any step() calls");
+    }
+    if (overrides.scenarioName !== undefined) {
+      this.scenarioName = overrides.scenarioName;
+    }
+    if (overrides.title !== undefined) {
+      this.title = overrides.title;
+    }
+    if (overrides.outputDir !== undefined) {
+      this.outputDir = overrides.outputDir;
+    }
+    this.screenshotDir = path.join(this.outputDir, "screenshots", this.scenarioName);
+    fs.mkdirSync(this.screenshotDir, { recursive: true });
+  }
+
   async step(
     title: string,
     description: string,
@@ -193,4 +210,45 @@ export class ScenarioRecorder {
       // element may be hidden or detached — skip
     }
   }
+}
+
+export interface GenerateIndexOptions {
+  dir: string;
+  output?: string;
+  locale?: "ja" | "en";
+  title?: string;
+}
+
+const indexLocales: Record<string, string> = {
+  ja: "操作手順書 一覧",
+  en: "Scenario Manual Index",
+};
+
+export function generateIndex(options: GenerateIndexOptions): void {
+  const { dir, locale = "ja" } = options;
+  const outputPath = options.output ?? path.join(dir, "index.md");
+  const heading = options.title ?? indexLocales[locale] ?? indexLocales.ja;
+
+  const files = fs
+    .readdirSync(dir)
+    .filter((f) => f.endsWith(".md") && f !== path.basename(outputPath))
+    .sort();
+
+  const entries: { file: string; title: string }[] = [];
+  for (const file of files) {
+    const content = fs.readFileSync(path.join(dir, file), "utf-8");
+    const match = content.match(/^#\s+(.+)$/m);
+    const title = match ? match[1] : file.replace(/\.md$/, "");
+    entries.push({ file, title });
+  }
+
+  entries.sort((a, b) => a.title.localeCompare(b.title));
+
+  const lines: string[] = [`# ${heading}`, ""];
+  for (const entry of entries) {
+    lines.push(`- [${entry.title}](./${entry.file})`);
+  }
+  lines.push("");
+
+  fs.writeFileSync(outputPath, lines.join("\n"), "utf-8");
 }
