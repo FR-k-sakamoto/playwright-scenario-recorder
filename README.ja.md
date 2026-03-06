@@ -44,6 +44,7 @@ test("Login flow", async ({ page }) => {
   );
 
   recorder.generateMarkdown();
+  // または: await recorder.generate();  // outputFormat に応じて MD/PDF を出力
   // 出力: docs/login-flow.md + docs/screenshots/login-flow/step-01.png, ...
 });
 ```
@@ -66,6 +67,16 @@ test("Login flow", async ({ page }) => {
 | ----------------------- | ---------- | -------------------- | ------------------------------------------------- |
 | `locale`                | `"ja" \| "en"` | `"ja"`           | 見出しやメタデータの出力言語                          |
 | `hideOverlaySelectors`  | `string[]` | Next.js オーバーレイ非表示ルール | スクリーンショットで開発オーバーレイを非表示にするCSSルール |
+| `outputFormat`          | `"md" \| "pdf" \| "both"` | `"md"` | 出力形式                                            |
+| `pdfOptions`            | `PdfOptions` | `{}`           | PDF生成オプション（Chromium限定）                     |
+
+#### `PdfOptions`
+
+| オプション         | 型                                                          | デフォルト    | 説明                          |
+| ----------------- | ----------------------------------------------------------- | ------------ | ----------------------------- |
+| `format`          | `"A4" \| "Letter" \| "Legal"`                               | `"A4"`       | 用紙サイズ                     |
+| `printBackground` | `boolean`                                                   | `true`       | 背景グラフィックを印刷するか     |
+| `margin`          | `{ top?: string; right?: string; bottom?: string; left?: string }` | 全て `20mm` | ページ余白                     |
 
 ### `recorder.step(title, description, action, options?)`
 
@@ -88,6 +99,14 @@ test("Login flow", async ({ page }) => {
 ### `recorder.generateMarkdown()`
 
 記録した手順を `{outputDir}/{scenarioName}.md` にMarkdownファイルとして出力します。
+
+### `recorder.generatePdf(options?)`
+
+`{outputDir}/{scenarioName}.pdf` にPDFファイルを生成します。スクリーンショットはbase64データURIとして埋め込まれます。**Chromium限定** — Firefox/WebKitではエラーになります。
+
+### `recorder.generate()`
+
+`outputFormat` オプションに基づいて出力を生成します。推奨のエントリポイントです。`generateMarkdown()` および/または `generatePdf()` を必要に応じて呼び出します。
 
 ## ロケール
 
@@ -122,7 +141,7 @@ const recorder = new ScenarioRecorder(page, "flow", "Title", "./docs", {
 
 ## Fixture（推奨）
 
-`createScenarioTest()` を使うと、ボイラープレートを省略できます。fixture が `recorder` を自動生成し、テスト後に `generateMarkdown()` を呼び出し、オプションでリソースのクリーンアップも行います。
+`createScenarioTest()` を使うと、ボイラープレートを省略できます。fixture が `recorder` を自動生成し、テスト後に `generate()` を呼び出し（`outputFormat` に応じてMD/PDFを出力）、オプションでリソースのクリーンアップも行います。
 
 ```ts
 import { createScenarioTest } from "playwright-scenario-recorder/fixture";
@@ -136,7 +155,7 @@ test("ログインフロー", async ({ recorder }) => {
   await recorder.step("ログインページを開く", "ログインページに遷移します。", async (p) => {
     await p.goto("http://localhost:3000/login");
   });
-  // generateMarkdown() とクリーンアップは自動実行
+  // generate() とクリーンアップは自動実行
 });
 ```
 
@@ -152,6 +171,8 @@ test("ログインフロー", async ({ recorder }) => {
 | `locale`          | `"ja" \| "en"`              | `"ja"`      | 出力言語                                  |
 | `recorderOptions` | `Omit<ScenarioRecorderOptions, "locale">` | `{}` | `ScenarioRecorder` コンストラクタに渡すオプション |
 | `cleanup`         | `CleanupConfig \| false`    | `{}`        | リソースクリーンアップ設定。`false` で無効化  |
+| `outputFormat`    | `"md" \| "pdf" \| "both"`   | `"md"`      | 出力形式                                  |
+| `pdfOptions`      | `PdfOptions`                | `{}`        | PDF生成オプション（Chromium限定）            |
 
 #### `CleanupConfig`
 
@@ -258,7 +279,7 @@ const test = createScenarioTest({
 
 test("機能X シナリオ", async ({ recorder }) => {
   // ... ステップ ...
-  // generateMarkdown() はテスト後に自動実行
+  // generate() はテスト後に自動実行（outputFormat に応じて MD/PDF を出力）
 });
 ```
 

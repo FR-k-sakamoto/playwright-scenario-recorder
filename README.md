@@ -46,6 +46,7 @@ test("Login flow", async ({ page }) => {
   );
 
   recorder.generateMarkdown();
+  // Or use: await recorder.generate();  // outputs MD/PDF based on outputFormat
   // Output: docs/login-flow.md + docs/screenshots/login-flow/step-01.png, ...
 });
 ```
@@ -68,6 +69,16 @@ test("Login flow", async ({ page }) => {
 | ----------------------- | ---------- | ---------------------- | ----------------------------------------------------- |
 | `locale`                | `"ja" \| "en"` | `"ja"`            | Output language for headings and metadata              |
 | `hideOverlaySelectors`  | `string[]` | Next.js overlay rules  | CSS rules injected to hide dev overlays in screenshots |
+| `outputFormat`          | `"md" \| "pdf" \| "both"` | `"md"` | Output format                                         |
+| `pdfOptions`            | `PdfOptions` | `{}`             | PDF generation options (Chromium only)                 |
+
+#### `PdfOptions`
+
+| Option            | Type                                                        | Default    | Description                          |
+| ----------------- | ----------------------------------------------------------- | ---------- | ------------------------------------ |
+| `format`          | `"A4" \| "Letter" \| "Legal"`                               | `"A4"`     | Paper format                         |
+| `printBackground` | `boolean`                                                   | `true`     | Whether to print background graphics |
+| `margin`          | `{ top?: string; right?: string; bottom?: string; left?: string }` | `20mm` all | Page margins                         |
 
 ### `recorder.step(title, description, action, options?)`
 
@@ -90,6 +101,14 @@ Executes an action, waits for the page to settle, takes a screenshot, and record
 ### `recorder.generateMarkdown()`
 
 Writes the accumulated steps to a Markdown file at `{outputDir}/{scenarioName}.md`.
+
+### `recorder.generatePdf(options?)`
+
+Generates a PDF file at `{outputDir}/{scenarioName}.pdf`. Screenshots are embedded as base64 data URIs. **Chromium only** — throws an error on Firefox/WebKit.
+
+### `recorder.generate()`
+
+Generates output based on the `outputFormat` option. This is the recommended entry point — it calls `generateMarkdown()` and/or `generatePdf()` as needed.
 
 ## Locale
 
@@ -124,7 +143,7 @@ const recorder = new ScenarioRecorder(page, "flow", "Title", "./docs", {
 
 ## Fixture (Recommended)
 
-Use `createScenarioTest()` to eliminate boilerplate. The fixture auto-creates a `recorder`, calls `generateMarkdown()` after each test, and optionally cleans up created resources.
+Use `createScenarioTest()` to eliminate boilerplate. The fixture auto-creates a `recorder`, calls `generate()` after each test (outputting MD/PDF based on `outputFormat`), and optionally cleans up created resources.
 
 ```ts
 import { createScenarioTest } from "playwright-scenario-recorder/fixture";
@@ -138,7 +157,7 @@ test("Login flow", async ({ recorder }) => {
   await recorder.step("Open login page", "Navigate to the login page.", async (p) => {
     await p.goto("http://localhost:3000/login");
   });
-  // generateMarkdown() and cleanup run automatically
+  // generate() and cleanup run automatically
 });
 ```
 
@@ -154,6 +173,8 @@ Returns a Playwright `test` object with a `recorder` fixture.
 | `locale`          | `"ja" \| "en"`               | `"ja"`      | Output language                                  |
 | `recorderOptions` | `Omit<ScenarioRecorderOptions, "locale">` | `{}` | Passed to `ScenarioRecorder` constructor |
 | `cleanup`         | `CleanupConfig \| false`     | `{}`        | Resource cleanup config. `false` to disable      |
+| `outputFormat`    | `"md" \| "pdf" \| "both"`    | `"md"`      | Output format                                    |
+| `pdfOptions`      | `PdfOptions`                 | `{}`        | PDF generation options (Chromium only)            |
 
 #### `CleanupConfig`
 
@@ -260,7 +281,7 @@ const test = createScenarioTest({
 
 test("Feature X scenario", async ({ recorder }) => {
   // ... steps ...
-  // generateMarkdown() runs automatically after the test
+  // generate() runs automatically after the test (MD/PDF based on outputFormat)
 });
 ```
 

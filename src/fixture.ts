@@ -1,6 +1,11 @@
 import { test as base, type Page, type APIRequestContext } from "@playwright/test";
 import * as path from "path";
-import { ScenarioRecorder, type ScenarioRecorderOptions } from "./index.js";
+import {
+  ScenarioRecorder,
+  type ScenarioRecorderOptions,
+  type OutputFormat,
+  type PdfOptions,
+} from "./index.js";
 
 export interface CleanupConfig {
   trackMethods?: string[];
@@ -14,6 +19,8 @@ export interface ScenarioFixtureConfig {
   locale?: "ja" | "en";
   recorderOptions?: Omit<ScenarioRecorderOptions, "locale">;
   cleanup?: CleanupConfig | false;
+  outputFormat?: OutputFormat;
+  pdfOptions?: PdfOptions;
 }
 
 interface ScenarioFixtures {
@@ -26,6 +33,8 @@ export function createScenarioTest(config: ScenarioFixtureConfig = {}) {
     locale = "ja",
     recorderOptions = {},
     cleanup: cleanupConfig,
+    outputFormat,
+    pdfOptions,
   } = config;
 
   return base.extend<ScenarioFixtures>({
@@ -37,6 +46,8 @@ export function createScenarioTest(config: ScenarioFixtureConfig = {}) {
       const recorder = new ScenarioRecorder(page, scenarioName, title, outputDir, {
         locale,
         ...recorderOptions,
+        ...(outputFormat !== undefined && { outputFormat }),
+        ...(pdfOptions !== undefined && { pdfOptions }),
       });
 
       const created: { url: string; id: string }[] = [];
@@ -66,7 +77,7 @@ export function createScenarioTest(config: ScenarioFixtureConfig = {}) {
 
       await use(recorder);
 
-      recorder.generateMarkdown();
+      await recorder.generate();
 
       if (cleanupConfig !== false) {
         for (const res of [...created].reverse()) {
